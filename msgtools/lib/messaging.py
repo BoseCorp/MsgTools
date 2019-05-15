@@ -17,6 +17,7 @@ import csv
 from collections import namedtuple
 import ctypes
 from datetime import datetime
+import math
 
 # A decorator to specify units for fields
 def units(arg):
@@ -387,8 +388,9 @@ class Messaging:
                             else:
                                 for bitInfo in fieldInfo.bitfieldInfo:
                                     Messaging.set(msg, bitInfo, val)
-                                    paramNumber+=1
-                                    val = params[paramNumber]
+                                    #remove already processed bits
+                                    val = str(int(val) >> int(math.log(int(bitInfo.maxVal) + 1, 2)))
+                                paramNumber+=1
                         else:
                             if val.startswith("0x") and len(val) > 2+fieldInfo.count*int(fieldInfo.get.size):
                                 if val.endswith(";"):
