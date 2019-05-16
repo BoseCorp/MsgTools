@@ -68,6 +68,13 @@ def maxVal(arg):
         return fcn
     return _maxVal
 
+# A decorator to specify if a field is variable length
+def isVariableLength(arg):
+    def _isVariableLength(fcn):
+        fcn.isVariableLength = arg
+        return fcn
+    return _isVariableLength
+
 class Messaging:
     hdr=None
     hdrSize=0
@@ -365,6 +372,7 @@ class Messaging:
                 try:
                     paramNumber = 0
                     for fieldInfo in msgClass.fields:
+                        print("" + fieldInfo.name + ": " + str(fieldInfo.isVariableLength))
                         val = params[paramNumber].strip()
                         #print("val is [" + val + "]") 
                         if(fieldInfo.count == 1):
@@ -650,12 +658,13 @@ class BitFieldInfo(object):
         self.idbits=idbits
 
 class FieldInfo(object):
-    def __init__(self, name, type, units, minVal, maxVal, description, get, set, count, bitfieldInfo, enum, idbits=0):
+    def __init__(self, name, type, units, minVal, maxVal, isVariableLength, description, get, set, count, bitfieldInfo, enum, idbits=0):
         self.name=name
         self.type=type
         self.units=units
         self.minVal=minVal
         self.maxVal=maxVal
+        self.isVariableLength=isVariableLength
         self.description=description
         self.get=get
         self.set=set

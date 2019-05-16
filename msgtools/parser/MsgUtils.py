@@ -80,6 +80,13 @@ def fieldIsSigned(field):
                 isSigned = 1
     return isSigned
 
+def fieldIsVariableLength(field):
+    isVariableLength = False
+    if "VariableLength" in field:
+        if field["VariableLength"] is True:
+            isVariableLength = True
+    return isVariableLength
+
 def transformInt(field, value):
     if "Scale" in field or "Offset" in field:
         scale = fieldItem(field, "Scale", 1.0)

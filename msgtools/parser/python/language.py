@@ -66,6 +66,7 @@ def fieldReflection(msg, field):
                   'units="'+MsgParser.fieldUnits(field) + '",'+\
                   'minVal="'+str(MsgParser.fieldMin(field)) + '",'+\
                   'maxVal="'+str(MsgParser.fieldMax(field)) + '",'+\
+                  'isVariableLength='+str(MsgParser.fieldIsVariableLength(field)) + ','+\
                   'description="'+MsgParser.fieldDescription(field) + '",'+\
                   'get='+"Get" + field["Name"] + ','+\
                   'set='+"Set" + field["Name"]  + ','+\
@@ -109,6 +110,7 @@ def fnHdr(field, offset, count, name):
         
     min = MsgParser.fieldMin(field)
     max = MsgParser.fieldMax(field)
+    isVariableLength = MsgParser.fieldIsVariableLength(field)
     
     try:
         fieldSize = MsgParser.fieldSize(field)
@@ -122,11 +124,12 @@ def fnHdr(field, offset, count, name):
 @msg.default('%s')
 @msg.minVal('%s')
 @msg.maxVal('%s')
+@msg.isVariableLength(%s)
 @msg.offset('%s')
 @msg.size('%s')
 @msg.count(%s)
 def %s(%s):
-    """%s"""''' % (MsgParser.fieldUnits(field), str(MsgParser.fieldDefault(field)), str(min), str(max), str(offset), str(fieldSize), str(count), name, param, MsgParser.fieldDescription(field))
+    """%s"""''' % (MsgParser.fieldUnits(field), str(MsgParser.fieldDefault(field)), str(min), str(max), isVariableLength, str(offset), str(fieldSize), str(count), name, param, MsgParser.fieldDescription(field))
     return ret
 
 def enumLookup(msg, field):
@@ -234,7 +237,7 @@ def setBitsFn(msg, field, bits, offset, bitOffset, numBits):
 def accessors(msg):
     gets = []
     sets = []
-    
+   
     offset = 0
     if "Fields" in msg:
         for field in msg["Fields"]:
