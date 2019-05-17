@@ -658,17 +658,17 @@ class BitFieldInfo(object):
         self.idbits=idbits
 
 class FieldInfo(object):
-    def __init__(self, name, type, units, minVal, maxVal, isVariableLength, description, get, set, count, bitfieldInfo, enum, idbits=0):
+    def __init__(self, name, type, units, minVal, maxVal, description, get, set, count, bitfieldInfo, enum, isVariableLength=False, idbits=0):
         self.name=name
         self.type=type
         self.units=units
         self.minVal=minVal
         self.maxVal=maxVal
-        self.isVariableLength=isVariableLength
         self.description=description
         self.get=get
         self.set=set
         self.count=count
         self.bitfieldInfo=bitfieldInfo
         self.enum=enum
+        self.isVariableLength=isVariableLength
         self.idbits=idbits

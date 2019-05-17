@@ -66,11 +66,11 @@ def fieldReflection(msg, field):
                   'units="'+MsgParser.fieldUnits(field) + '",'+\
                   'minVal="'+str(MsgParser.fieldMin(field)) + '",'+\
                   'maxVal="'+str(MsgParser.fieldMax(field)) + '",'+\
-                  'isVariableLength='+str(MsgParser.fieldIsVariableLength(field)) + ','+\
                   'description="'+MsgParser.fieldDescription(field) + '",'+\
                   'get='+"Get" + field["Name"] + ','+\
                   'set='+"Set" + field["Name"]  + ','+\
-                  'count='+str(pythonFieldCount(field)) + ', '
+                  'count='+str(pythonFieldCount(field)) + ','+\
+                  'isVariableLength='+str(MsgParser.fieldIsVariableLength(field)) + ', '
     if "IDBits" in field:
         fieldInfo += "idbits="+str(field["IDBits"])+","
     if "Bitfields" in field:
