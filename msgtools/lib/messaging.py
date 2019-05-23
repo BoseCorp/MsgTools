@@ -362,7 +362,7 @@ class Messaging:
             line = Messaging.escapeCommasInQuotedString(params[1])
             # use CSV reader module
             params = list(csv.reader([line], quotechar='"', delimiter=',', quoting=csv.QUOTE_NONE, skipinitialspace=True, escapechar='\\'))[0]
-            #print("params is " + str(params))
+            print("params is " + str(params))
         if msgName in Messaging.MsgClassFromName:
             msgClass = Messaging.MsgClassFromName[msgName]
             msg = msgClass()
@@ -371,6 +371,7 @@ class Messaging:
             if msg.fields:
                 try:
                     paramNumber = 0
+                    extra_bytes = 0
                     for fieldInfo in msgClass.fields:
                         print("" + fieldInfo.name + ": " + str(fieldInfo.isVariableLength))
                         val = params[paramNumber].strip()
@@ -400,7 +401,7 @@ class Messaging:
                                     val = str(int(val) >> int(math.log(int(bitInfo.maxVal) + 1, 2)))
                                 paramNumber+=1
                         else:
-                            if val.startswith("0x") and len(val) > 2+fieldInfo.count*int(fieldInfo.get.size):
+                            if val.startswith("0x") and len(val) > 2 + int(fieldInfo.get.size):
                                 if val.endswith(";"):
                                     terminateMsg = 1
                                     val = val[:-1]
@@ -411,8 +412,15 @@ class Messaging:
                                 valArray = [hexStr[i:i+charsForOneElem] for i in range(0, len(hexStr), charsForOneElem)]
                                 for i in range(0,len(valArray)):
                                     Messaging.set(msg, fieldInfo, int(valArray[i], 16), i)
+
+                                # if hex value doesn't fill the max count of a variable length field
+                                # save the number of trailing bytes
+                                if fieldInfo.isVariableLength:
+                                    extra_bytes = fieldInfo.count - len(valArray)
+
                                 paramNumber+=1
                             else:
+                                start_idx = paramNumber
                                 for i in range(0,fieldInfo.count):
                                     if val.endswith(";"):
                                         terminateMsg = 1
@@ -422,6 +430,12 @@ class Messaging:
                                     if terminateMsg:
                                         break
                                     paramNumber+=1
+
+                                    # if we've processed all input params and haven't fill the max count of a variable length field
+                                    # save the number of trailing bytes
+                                    if fieldInfo.isVariableLength and paramNumber >= len(params):
+                                        field_length = paramNumber - start_idx
+                                        extra_bytes = fieldInfo.count - field_length
                                     val = params[paramNumber]
                         if terminateMsg:
                             break
@@ -431,7 +445,8 @@ class Messaging:
                     pass
             if terminateMsg:
                 msg.hdr.SetDataLength(terminationLen)
-            return msg
+            # return the message along with the number of trailing bytes
+            return (msg, extra_bytes)
         else:
             #print("["+lineOfText+"] is NOT A MESSAGE NAME!")
             pass
