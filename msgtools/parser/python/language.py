@@ -12,8 +12,8 @@ def fieldType(field):
 
 def pythonFieldCount(field):
     count = MsgParser.fieldCount(field)
-    if MsgParser.fieldUnits(field) == "ASCII" and (field["Type"] == "uint8" or field["Type"] == "int8"):
-        count = 1
+    #if MsgParser.fieldUnits(field) == "ASCII" and (field["Type"] == "uint8" or field["Type"] == "int8"):
+    #    count = 1
     return count
 
 def reflectionInterfaceType(field):

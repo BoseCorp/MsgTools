@@ -199,7 +199,7 @@ class Messaging:
         elif("float" in fieldInfo.type):
             value = float(value)
         
-        if not hasattr(fieldInfo, "count") or fieldInfo.count == 1:
+        if not hasattr(fieldInfo, "count") or fieldInfo.count == 1 or fieldInfo.type == "string":
             fieldInfo.set(msg, value)
         else:
             fieldInfo.set(msg, value, index)
@@ -207,7 +207,7 @@ class Messaging:
     @staticmethod
     def get(msg, fieldInfo, index=0):
         try:
-            if not hasattr(fieldInfo, "count") or fieldInfo.count == 1:
+            if not hasattr(fieldInfo, "count") or fieldInfo.count == 1 or fieldInfo.type == "string":
                 value = fieldInfo.get(msg)
             else:
                 value = fieldInfo.get(msg, index)
@@ -262,6 +262,9 @@ class Messaging:
                     for bitInfo in fieldInfo.bitfieldInfo:
                         pythonObj[bitInfo.name] = str(Messaging.get(msg, bitInfo))
             else:
+                if fieldInfo.type == "string":
+                    pythonObj[fieldInfo.name] = str(Messaging.get(msg, fieldInfo))
+                    break
                 arrayList = []
                 terminate = 0
                 for i in range(0,fieldInfo.count):
@@ -352,7 +355,8 @@ class Messaging:
     @staticmethod
     def csvToMsg(lineOfText):
         if lineOfText == '':
-            return None
+            return (None, 0)
+        extra_bytes = 0
         params = lineOfText.split(" ", 1)
         msgName = params[0]
         if len(params) == 1:
@@ -362,7 +366,7 @@ class Messaging:
             line = Messaging.escapeCommasInQuotedString(params[1])
             # use CSV reader module
             params = list(csv.reader([line], quotechar='"', delimiter=',', quoting=csv.QUOTE_NONE, skipinitialspace=True, escapechar='\\'))[0]
-            print("params is " + str(params))
+            #print("params is " + str(params))
         if msgName in Messaging.MsgClassFromName:
             msgClass = Messaging.MsgClassFromName[msgName]
             msg = msgClass()
@@ -371,9 +375,7 @@ class Messaging:
             if msg.fields:
                 try:
                     paramNumber = 0
-                    extra_bytes = 0
                     for fieldInfo in msgClass.fields:
-                        print("" + fieldInfo.name + ": " + str(fieldInfo.isVariableLength))
                         val = params[paramNumber].strip()
                         #print("val is [" + val + "]") 
                         if(fieldInfo.count == 1):
@@ -396,9 +398,14 @@ class Messaging:
                                 paramNumber+=1
                             else:
                                 for bitInfo in fieldInfo.bitfieldInfo:
-                                    Messaging.set(msg, bitInfo, val)
+                                    numBits = int(math.log(int(bitInfo.maxVal) + 1, 2))
+                                    mask = 0
+                                    for i in range(0,numBits):
+                                        mask =  mask + (1 << i)
+                                    masked_val = int(val) & mask
+                                    Messaging.set(msg, bitInfo, masked_val)
                                     #remove already processed bits
-                                    val = str(int(val) >> int(math.log(int(bitInfo.maxVal) + 1, 2)))
+                                    val = str(int(val) >> numBits)
                                 paramNumber+=1
                         else:
                             if val.startswith("0x") and len(val) > 2 + int(fieldInfo.get.size):
@@ -418,6 +425,15 @@ class Messaging:
                                 if fieldInfo.isVariableLength:
                                     extra_bytes = fieldInfo.count - len(valArray)
 
+                                paramNumber+=1
+                            elif fieldInfo.type == "string":
+                                if val.startswith('"') and val.endswith('"'):
+                                    val = val.strip('"')
+                                if terminateMsg:
+                                    terminationLen = int(fieldInfo.get.offset) + int(fieldInfo.get.size) * len(val)
+                                string_len = len(val)
+                                extra_bytes = fieldInfo.count - string_len
+                                Messaging.set(msg, fieldInfo, val)
                                 paramNumber+=1
                             else:
                                 start_idx = paramNumber
@@ -450,7 +466,7 @@ class Messaging:
         else:
             #print("["+lineOfText+"] is NOT A MESSAGE NAME!")
             pass
-        return None
+        return (None, 0)
 
     def long_substr(data):
         substr = ''
@@ -549,7 +565,6 @@ class Messaging:
                 except IndexError:
                     # if index error occurs on accessing params, then stop processing params
                     # because we've processed them all
-                    print("done at index " + str(paramNumber))
                     pass
                 if help.endswith(", "):
                     help = help[:-2]
