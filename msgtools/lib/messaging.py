@@ -376,6 +376,8 @@ class Messaging:
                 try:
                     paramNumber = 0
                     for fieldInfo in msgClass.fields:
+                        if fieldInfo.isVariableLength and paramNumber >= len(params):
+                            extra_bytes = fieldInfo.count
                         val = params[paramNumber].strip()
                         #print("val is [" + val + "]") 
                         if(fieldInfo.count == 1):
