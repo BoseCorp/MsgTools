@@ -157,6 +157,10 @@ def fieldDefault(field):
     return fieldItem(field, "Default", "")
 
 def fieldCount(field):
+    if fieldIsVariableLength(field):
+        print("VARIABLE LENGTH: ", field["Name"], " ", fieldItem(field, "Count", 60))
+        return fieldItem(field, "Count", 60)
+
     return fieldItem(field, "Count", 1)
 
 def numberOfFields(msg):
