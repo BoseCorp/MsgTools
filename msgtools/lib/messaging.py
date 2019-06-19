@@ -390,6 +390,9 @@ class Messaging:
                                     break
                                 # terminate after this field
                                 terminationLen = int(fieldInfo.get.offset) + int(fieldInfo.get.size)
+                            if val.startswith("0x"):
+                                intFromHexStr = int(val, 16)
+                                val = str(intFromHexStr)
                             if len(fieldInfo.bitfieldInfo) == 0:
                                 if fieldInfo.type == "string":
                                     if val.startswith('"') and val.endswith('"'):
